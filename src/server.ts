@@ -27,6 +27,21 @@ export interface ServerOptions {
   /** Override fetch (tests can inject a stub to simulate peer servers without real network I/O). */
   fetchImpl?: typeof fetch;
   /**
+   * When true, any DID that passes the challenge-response flow gets
+   * auto-admitted to any room's ACL on first contact. Designed for
+   * testing (wind tunnel) and open-community deployments. Default false.
+   */
+  autoAdmit?: boolean;
+  /**
+   * When true, the commit endpoint skips link-expression signature
+   * verification. The AD4M executor signs links before they reach the
+   * language, and verifies on read — so the server's own verification
+   * adds defense-in-depth but requires matching the executor's exact
+   * canonical payload format, which may differ across versions.
+   * Default false.
+   */
+  skipLinkVerification?: boolean;
+  /**
    * Override the sliding-window rate limiter thresholds. Defaults match the
    * project brief exactly (100/min per-IP auth, 300/min per-JWT room
    * endpoints, 60/min per-JWT commits); tests use small windows here to
@@ -90,7 +105,11 @@ export async function buildServer(opts: ServerOptions): Promise<BuiltServer> {
     ),
   };
 
-  const ctx: RouteContext = { db, auth, challenges, ws, telepresence, federation, identity, rateLimits };
+  const ctx: RouteContext = {
+    db, auth, challenges, ws, telepresence, federation, identity, rateLimits,
+    autoAdmit: opts.autoAdmit ?? false,
+    skipLinkVerification: opts.skipLinkVerification ?? false,
+  };
   registerRoutes(app, ctx);
   ws.register(app);
 

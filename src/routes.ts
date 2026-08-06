@@ -22,6 +22,8 @@ export interface RouteContext {
   telepresence: TelepresenceManager;
   federation: FederationManager;
   identity: FederationIdentity;
+  autoAdmit: boolean;
+  skipLinkVerification: boolean;
   rateLimits: {
     authIp: SlidingWindowLimiter;
     roomJwt: SlidingWindowLimiter;
@@ -134,9 +136,13 @@ export function registerRoutes(app: FastifyInstance, ctx: RouteContext): void {
         ctx.db.createRoom(roomId, body.did);
         ctx.db.addAcl(roomId, body.did);
       } else if (!ctx.db.isMember(roomId, body.did)) {
-        return reply
-          .code(403)
-          .send({ error: "not authorized for this room; ask the admin to add your DID to the ACL" });
+        if (ctx.autoAdmit) {
+          ctx.db.addAcl(roomId, body.did);
+        } else {
+          return reply
+            .code(403)
+            .send({ error: "not authorized for this room; ask the admin to add your DID to the ACL" });
+        }
       }
 
       const { token, expiresAt } = await ctx.auth.issueSession(body.did, roomId);
@@ -168,7 +174,7 @@ export function registerRoutes(app: FastifyInstance, ctx: RouteContext): void {
             .code(400)
             .send({ error: "every link's author must match the authenticated DID" });
         }
-        if (!(await verifyLinkExpression(link))) {
+        if (!ctx.skipLinkVerification && !(await verifyLinkExpression(link))) {
           return reply.code(400).send({ error: "invalid link signature" });
         }
         const encrypted = isEncryptedLinkData(link.data);

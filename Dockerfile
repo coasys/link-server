@@ -23,4 +23,7 @@ COPY --from=build /app/node_modules/ ./node_modules/
 COPY --from=build /app/dist/ ./dist/
 EXPOSE 3456
 VOLUME /data
-CMD ["node", "dist/index.js", "--port", "3456", "--data", "/data"]
+# PORT, DATA_DIR, AUTO_ADMIT, SKIP_LINK_VERIFICATION read from env vars
+# (see src/index.ts parseArgs). Defaults: port 3456, data ./data.
+ENV DATA_DIR=/data
+CMD ["node", "dist/index.js"]
