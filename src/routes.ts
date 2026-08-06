@@ -86,6 +86,12 @@ function jwtRateLimit(limiter: SlidingWindowLimiter) {
 }
 
 export function registerRoutes(app: FastifyInstance, ctx: RouteContext): void {
+  // ---- health check (public, unauthenticated) ----
+
+  app.get("/health", async (_request, reply) => {
+    return reply.send({ status: "ok" });
+  });
+
   // ---- server identity (public, not room-scoped) ----
 
   app.get("/server/identity", async (_request, reply) => {
