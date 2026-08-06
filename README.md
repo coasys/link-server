@@ -1,13 +1,13 @@
-# @coasys/adam-link-server
+# @coasys/link-server
 
 A self-hostable link language server for [AD4M](https://github.com/coasys/ad4m). Communities run this on their own hardware; AD4M agents authenticate with their DID and sync link data through it. Think Matrix homeserver, but purpose-built for AD4M link sync instead of chat.
 
-**Companion repo:** [`adam-server-link-language`](https://github.com/coasys/adam-server-link-language) — the AD4M link language that talks to this server.
+**Companion repo:** [`server-link-language`](https://github.com/coasys/server-link-language) — the AD4M link language that talks to this server.
 
 ## Quickstart
 
 ```bash
-npx @coasys/adam-link-server --port 3456 --data ./my-data
+npx @coasys/link-server --port 3456 --data ./my-data
 ```
 
 Or with Docker:

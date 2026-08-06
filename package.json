@@ -1,10 +1,10 @@
 {
-  "name": "@coasys/adam-link-server",
+  "name": "@coasys/link-server",
   "version": "0.1.0",
   "description": "Self-hostable link language server for AD4M — communities run their own data",
   "type": "module",
   "bin": {
-    "adam-link-server": "./dist/index.js"
+    "link-server": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc && chmod +x dist/index.js",

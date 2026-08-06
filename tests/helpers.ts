@@ -66,7 +66,7 @@ export interface TestServerHandle {
 
 /** Boots a fresh server on a random port with a temp data directory. Always call `close()`. */
 export async function startTestServer(opts: Partial<ServerOptions> = {}): Promise<TestServerHandle> {
-  const dataDir = mkdtempSync(path.join(tmpdir(), "adam-link-server-test-"));
+  const dataDir = mkdtempSync(path.join(tmpdir(), "link-server-test-"));
   const built = await buildServer({
     dataDir,
     logger: false,

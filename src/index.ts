@@ -10,10 +10,10 @@ interface CliArgs {
   skipLinkVerification: boolean;
 }
 
-const USAGE = `adam-link-server — self-hostable link language server for AD4M
+const USAGE = `link-server — self-hostable link language server for AD4M
 
 Usage:
-  adam-link-server [--port <number>] [--data <dir>] [--host <address>] [--self-url <url>]
+  link-server [--port <number>] [--data <dir>] [--host <address>] [--self-url <url>]
 
 Options:
   --port <number>    Port to listen on (default: 3456)

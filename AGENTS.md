@@ -1,4 +1,4 @@
-# AGENTS.md — adam-link-server
+# AGENTS.md — link-server
 
 Self-hostable link language server for AD4M. Fastify + ws + better-sqlite3, single process, single SQLite file per deployment. No external services (no Redis, no Postgres) — this is meant to run on a community's own small hardware.
 
