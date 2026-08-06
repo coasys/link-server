@@ -4,6 +4,8 @@ A self-hostable link language server for [AD4M](https://github.com/coasys/ad4m).
 
 **Companion repo:** [`server-link-language`](https://github.com/coasys/server-link-language) — the AD4M link language that talks to this server.
 
+![Setup & Join Guide](guide.svg)
+
 ## Quickstart
 
 ```bash
