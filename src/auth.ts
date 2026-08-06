@@ -1,4 +1,4 @@
-import { randomBytes as nodeRandomBytes } from "node:crypto";
+import { createHash, randomBytes as nodeRandomBytes } from "node:crypto";
 import * as ed from "@noble/ed25519";
 import { SignJWT, jwtVerify, errors as joseErrors } from "jose";
 import type { LinkServerDB } from "./db.js";
@@ -122,6 +122,17 @@ export function publicKeyToDid(pubkey: Uint8Array): string {
 
 function toBytes(message: string | Uint8Array): Uint8Array {
   return typeof message === "string" ? new TextEncoder().encode(message) : message;
+}
+
+/**
+ * Hash a message using SHA-256 to match the AD4M executor's signing
+ * convention. The executor's `agentSignStringHex` signs
+ * `SHA-256(message.as_bytes())`, NOT the raw message bytes. Any
+ * verification of an executor-produced signature must hash the message
+ * first.
+ */
+export function hashMessageForVerify(message: string): Uint8Array {
+  return createHash("sha256").update(message).digest();
 }
 
 export async function signHex(

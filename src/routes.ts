@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { didToPublicKey, verifyHex, verifyLinkExpression, type AuthManager, type ChallengeStore } from "./auth.js";
+import { didToPublicKey, hashMessageForVerify, verifyHex, verifyLinkExpression, type AuthManager, type ChallengeStore } from "./auth.js";
 import type { LinkServerDB } from "./db.js";
 import { rotateRoomKey } from "./encryption.js";
 import type { FederateResult, FederationIdentity, FederationManager } from "./federation.js";
@@ -132,7 +132,10 @@ export function registerRoutes(app: FastifyInstance, ctx: RouteContext): void {
         return reply.code(401).send({ error: "invalid or expired challenge" });
       }
       const pubkey = didToPublicKey(body.did);
-      const sigValid = await verifyHex(pubkey, body.challenge, body.signature);
+      // The AD4M executor's agentSignStringHex signs SHA-256(message),
+      // not the raw message bytes. Hash the challenge to match.
+      const challengeHash = hashMessageForVerify(body.challenge);
+      const sigValid = await verifyHex(pubkey, challengeHash, body.signature);
       if (!sigValid) {
         return reply.code(401).send({ error: "invalid signature" });
       }

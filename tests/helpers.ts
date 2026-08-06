@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import * as ed from "@noble/ed25519";
 import WebSocket from "ws";
-import { publicKeyToDid, signHex } from "../src/auth.js";
+import { hashMessageForVerify, publicKeyToDid, signHex } from "../src/auth.js";
 import { buildServer, type ServerOptions } from "../src/server.js";
 import {
   canonicalLinkPayload,
@@ -29,7 +29,10 @@ export async function createTestAgent(): Promise<TestAgent> {
 }
 
 export async function signChallenge(agent: TestAgent, challenge: string): Promise<string> {
-  return signHex(agent.privateKey, challenge);
+  // The AD4M executor's agentSignStringHex signs SHA-256(message), not
+  // the raw message bytes. Match that convention so the server can verify.
+  const hashed = hashMessageForVerify(challenge);
+  return signHex(agent.privateKey, hashed);
 }
 
 /** Builds a fully-signed LinkExpression as a real AD4M client would. */
