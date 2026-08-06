@@ -44,6 +44,7 @@ index.ts        CLI arg parsing, calls buildServer + app.listen
 
 ### Auth
 
+- **Critical signing convention:** The AD4M executor's `agentSignStringHex` signs `SHA-256(message.as_bytes())`, NOT the raw message bytes. The auth route hashes the challenge with SHA-256 before verifying the ed25519 signature. If you add any new endpoint that verifies a DID-signed payload, use `hashMessageForVerify()` (exported from `auth.ts`) before calling `verifyHex()`. Federation auth (server identity keys, not DID challenge-response) signs raw bytes — the SHA-256 convention applies ONLY to DID signatures.
 - DID pubkey extraction follows the `did:key` ed25519 convention exactly: strip `did:key:z`, base58btc-decode, drop the 2-byte multicodec prefix (`0xed, 0x01`), left with the raw 32-byte pubkey. No external DID resolution — the key is self-contained in the string.
 - JWTs are real (jose, HS256, secret persisted in `server_identity` under `key_type='jwt-secret'`) **and** backed by a `sessions` row. Both must be valid. This lets ACL removal revoke access immediately (delete the session row) rather than waiting for JWT expiry — removing a DID from a room's ACL returns `401 session expired or revoked` on their very next request, not a lazy `403` on next ACL check.
 - ACL membership is re-checked on *every* authenticated request (not just at login), so revocation is immediate everywhere, not just on new logins.
