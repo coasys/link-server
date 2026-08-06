@@ -18,6 +18,77 @@ docker compose up
 
 The server generates its own ed25519 identity keypair on first run (`<data-dir>/data.sqlite`, `server_identity` table) and creates rooms on demand — there's no separate provisioning step.
 
+## Usage
+
+### Configuration
+
+Control the server through environment variables or CLI flags:
+
+| Environment variable | CLI flag | Default | What it does |
+|---|---|---|---|
+| `PORT` | `--port` | `3456` | Listen port |
+| `DATA_DIR` | `--data` | `./data` | Storage directory (SQLite database + server identity) |
+| `AUTO_ADMIT` | `--auto-admit` | `false` | Admit every agent automatically when they authenticate |
+| `SKIP_LINK_VERIFICATION` | — | `false` | Skip link signature checks (testing only — never use in production) |
+
+### Rooms
+
+No room creation step needed. When the first agent authenticates against a room ID, the server creates that room and promotes the agent to **admin**. Every subsequent agent must pass the room's access control before they can read or write.
+
+### Managing access
+
+Without `AUTO_ADMIT`, only the admin can access the room. The admin adds or removes members through the `/acl` endpoint:
+
+```bash
+# Add a member
+curl -X POST https://your-server:3457/rooms/YOUR_ROOM/acl \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "add", "did": "did:key:z6Mk..."}'
+
+# Remove a member
+curl -X POST https://your-server:3457/rooms/YOUR_ROOM/acl \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "remove", "did": "did:key:z6Mk..."}'
+
+# List all members
+curl https://your-server:3457/rooms/YOUR_ROOM/acl \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+For open communities, start the server with `AUTO_ADMIT=true` and skip member management entirely.
+
+### Connecting AD4M agents to this server
+
+The server handles storage and sync — it does not speak AD4M on its own. The companion [**server-link-language**](https://github.com/coasys/server-link-language) bridges the gap: AD4M agents load that language, which then connects to this server, authenticates, and syncs links automatically. See that repo for instructions on publishing the language and creating neighbourhoods.
+
+### Federation (optional)
+
+Connect two link-server instances so they keep a room in sync:
+
+```bash
+# Add a federation peer (admin only)
+curl -X POST https://your-server:3457/rooms/YOUR_ROOM/federation \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "add", "peerUrl": "https://backup.example.com:3457"}'
+```
+
+Both servers forward committed diffs to each other automatically. Agents connected to either server see the same links.
+
+### End-to-end encryption (optional)
+
+Encrypt link data so the server operator cannot read it:
+
+```bash
+# Enable or rotate the room key (admin only)
+curl -X POST https://your-server:3457/rooms/YOUR_ROOM/keys/rotate \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+Each member automatically receives a sealed copy of the room key during authentication. After adding a new member to an encrypted room, run `keys/rotate` again so they receive their copy.
+
 ## How it works
 
 - **Rooms** are independent link-sync spaces, identified by an opaque `roomId` the client chooses. The first agent to authenticate against a room becomes its admin.
